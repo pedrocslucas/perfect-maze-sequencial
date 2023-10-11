@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1697045362 source:c:\users\pedro\documents\projetosc\perfectmaze\perfect-maze-sequencial\main.c
+	<stdio.h>
+	<stdlib.h>
+	<time.h>
+
