@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1697116626 source:c:\users\pedro\documents\projetosc\perfectmaze\perfect-maze-sequencial\main.c
+1697131804 source:c:\users\pedro\documents\projetosc\perfectmaze\perfect-maze-sequencial\main.c
 	<stdio.h>
 	<stdlib.h>
 	<time.h>
