@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define MAZE_SIZE 30
+#define MAZE_SIZE 1000
 
 char maze[MAZE_SIZE][MAZE_SIZE];
 
