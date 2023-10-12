@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define MAZE_SIZE 20
+#define MAZE_SIZE 30
 
 char maze[MAZE_SIZE][MAZE_SIZE];
 
-// Funï¿½ï¿½o para imprimir o labirinto
+// Função para imprimir o labirinto
 void print_maze() {
     for (int i = 0; i < MAZE_SIZE; i++) {
         for (int j = 0; j < MAZE_SIZE; j++) {
@@ -16,9 +16,9 @@ void print_maze() {
     }
 }
 
-// Funï¿½ï¿½o para criar um labirinto com caminhos internos e alternativos
+// Função para criar um labirinto com caminhos internos e alternativos
 void create_maze() {
-    // Inicialize o labirinto com todas as cï¿½lulas preenchidas com paredes
+    // Inicialize o labirinto com todas as células preenchidas com paredes
     for (int i = 0; i < MAZE_SIZE; i++) {
         for (int j = 0; j < MAZE_SIZE; j++) {
             maze[i][j] = '#';
@@ -31,7 +31,7 @@ void create_maze() {
     maze[MAZE_SIZE - 1][MAZE_SIZE - 1] = 'S';
     maze[MAZE_SIZE -1][MAZE_SIZE-2] = ' ';
 
-    // Caminho principal para a saï¿½da:
+    // Caminho principal para a saída:
     int x = 1;
     int y = 0;
     while (x < MAZE_SIZE - 1 || y < MAZE_SIZE - 2) {
@@ -90,45 +90,42 @@ int eh_valido(int x, int y){
 }
 
 int busca_em_profundidade(int inicio_x, int inicio_y) {
-    Pilha caminho;
-    inicializa_pilha(&caminho);
-    int encontrou_caminho = 0; // VariÃ¡vel de controle
+    Pilha pilha;
+    inicializa_pilha(&pilha);
 
     Coordenada inicio = {inicio_x, inicio_y};
-    push(&caminho, inicio);
-    maze[inicio_x][inicio_y] = 'V'; // Marcar como Visitado
+    push(&pilha, inicio);
 
-    while(caminho.topo >= 0 && !encontrou_caminho) {
-        Coordenada coord = pop(&caminho);
-        int x = coord.x;
-        int y = coord.y;
+    while (pilha.topo != -1) {
+        Coordenada atual = pop(&pilha);
+        int x = atual.x;
+        int y = atual.y;
 
-        if(maze[x][y] == 'S'){
-            encontrou_caminho = 1;
-            break;
+        // Condição de Parada
+        if (maze[x][y] == 'S') {
+            return 1;
         }
 
-        // Todos os movimentos possÃ­veis
-        int movimentosX[] = {0, 0, -1, 1};
-        int movimentosY[] = {-1, 1, 0, 0};
+        // Marcando a célula como visitada
+        maze[x][y] = '.';
+
+         // Todos os movimentos possíveis
+        int movimentosX[4] = {0, 0, -1, 1};
+        int movimentosY[4] = {-1, 1, 0, 0};
 
         for(int i = 0; i < 4; i++){
             int novoX = x + movimentosX[i];
             int novoY = y + movimentosY[i];
 
-            if((eh_valido(novoX, novoY)) && (maze[novoX][novoY] == ' ')){
+            if((eh_valido(novoX, novoY)) && (maze[novoX][novoY] == ' ' || maze[novoX][novoY] == 'S') ){
                 Coordenada novoCoord = {novoX, novoY};
-                push(&caminho, novoCoord);
-                maze[novoX][novoY] = 'V'; // Marcar como Visitado
+                push(&pilha, novoCoord);
             }
         }
     }
 
-    if(!encontrou_caminho) {
-        printf("Caminho nÃ£o encontrado... =(\n");
-    }
-
-    return encontrou_caminho;
+    // Se a pilha estiver vazia e não chegarmos à saída, então não há caminho
+    return 0;
 }
 
 int main() {
@@ -140,8 +137,11 @@ int main() {
     printf("Labirinto Criado:\n");
     print_maze();
 
-    busca_em_profundidade(0, 0);
-    printf("Caminho encontrado:\n");
+    int resp = busca_em_profundidade(0, 0);
+    if(resp == 1)
+        printf("Caminho encontrado:\n");
+    else
+        printf("Caminho NAO encontrado:\n");
     print_maze();
 
     return 0;
