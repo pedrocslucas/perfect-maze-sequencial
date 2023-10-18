@@ -3,7 +3,7 @@
 #include <time.h>
 #include <omp.h>
 
-#define MAZE_SIZE 50
+#define MAZE_SIZE 15000
 
 char** maze;
 
@@ -50,7 +50,7 @@ void liberar_memoria() {
 void create_maze() {
     inicializa_maze();
 
-    #pragma omp parallel for collapse(2)
+    //#pragma omp parallel for collapse(2)
     for (long long i = 0; i < MAZE_SIZE; i++) {
         for (long long j = 0; j < MAZE_SIZE; j++) {
             maze[i][j] = '#';
@@ -119,7 +119,7 @@ void create_maze() {
     maze[0][MAZE_SIZE - 1] = 'S';
 
     // Cria contornos entre a entrada e a saída.
-    #pragma omp parallel for simd
+    //#pragma omp parallel for simd
     for (long long i = 0; i < MAZE_SIZE; i++) {
         maze[i][MAZE_SIZE - 1] = '#';
         maze[MAZE_SIZE - 1][i] = '#';
@@ -149,64 +149,57 @@ int eh_valido(long long x, long long y) {
     return (x >= 0 && x < MAZE_SIZE) && (y >= 0 && y < MAZE_SIZE);
 }
 
-int busca_em_profundidade_recursive(long long x, long long y) {
-    if (maze[y][x] == 'S') {
-        return 1; // Encontrou a saída
-    }
-
-    maze[y][x] = '-'; // Marcar como visitado
-
-    // Movimento para a esquerda
-    long long newX = x - 1;
-    long long newY = y;
-    if (eh_valido(newX, newY) && (maze[newY][newX] == ' ' || maze[newY][newX] == 'S')) {
-        if (busca_em_profundidade_recursive(newX, newY)) {
-            return 1; // Caminho encontrado
-        }
-    }
-
-    // Movimento para baixo
-    newX = x;
-    newY = y + 1;
-    if (eh_valido(newX, newY) && (maze[newY][newX] == ' ' || maze[newY][newX] == 'S')) {
-        if (busca_em_profundidade_recursive(newX, newY)) {
-            return 1; // Caminho encontrado
-        }
-    }
-
-    // Movimento para a direita
-    newX = x + 1;
-    newY = y;
-    if (eh_valido(newX, newY) && (maze[newY][newX] == ' ' || maze[newY][newX] == 'S')) {
-        if (busca_em_profundidade_recursive(newX, newY)) {
-            return 1; // Caminho encontrado
-        }
-    }
-
-    // Movimento para cima
-    newX = x;
-    newY = y - 1;
-    if (eh_valido(newX, newY) && (maze[newY][newX] == ' ' || maze[newY][newX] == 'S')) {
-        if (busca_em_profundidade_recursive(newX, newY)) {
-            return 1; // Caminho encontrado
-        }
-    }
-
-    return 0; // Caminho não encontrado
-}
-
 int busca_em_profundidade(long long startX, long long startY) {
-    return busca_em_profundidade_recursive(startX, startY);
+    // Pilha para armazenar os pontos a serem explorados
+    Point *stack;
+    stack = (Point*) malloc((sizeof(Point)*(MAZE_SIZE*MAZE_SIZE)));
+    long top = 0;
+
+    stack[top].x = startX;
+    stack[top].y = startY;
+
+    int found = 0; // Variável para indicar se o caminho foi encontrado
+
+    while (top >= 0 && !found) {
+        Point current = stack[top];
+        top--;
+
+        if (maze[current.y][current.x] == 'S') {
+            found = 1; // Encontrou a saída
+        }
+
+        maze[current.y][current.x] = '-'; // Marcar como visitado
+
+        // Vetores para representar as direções possíveis (esquerda, baixo, direita, cima)
+        int dx[] = {0, 1, 0, -1};
+        int dy[] = {-1, 0, 1, 0};
+
+        for (int i = 0; i < 4; i++) {
+            if (found) continue; // Se o caminho foi encontrado, saia do loop
+
+            long newX = current.x + dx[i];
+            long newY = current.y + dy[i];
+
+            // Verifica se as novas coordenadas estão dentro dos limites do labirinto e se é um caminho vazio ou a saída
+            if (eh_valido(newX, newY) && (maze[newY][newX] == ' ' || maze[newY][newX] == 'S')) {
+                top++;
+                stack[top].x = newX;
+                stack[top].y = newY;
+            }
+        }
+    }
+
+    free(stack);
+    return found; // Retorna 1 se o caminho foi encontrado, 0 caso contrário
 }
 
 int main() {
     srand(time(NULL));
 
-    omp_set_num_threads(2); // Define o n�mero de Threads
+    //omp_set_num_threads(2); // Define o n�mero de Threads
 
     double timei = omp_get_wtime();
     create_maze();
-
     //printf("Labirinto Criado!\n");
     //print_maze();
     int resp = busca_em_profundidade(0, 0);
@@ -214,8 +207,8 @@ int main() {
     double timef = omp_get_wtime();
     printf("Time: %lf\n", timef-timei);
 
-    printf("\nCAMINHO FEITO PELO LABIRINTO: \n");
-    print_maze();
+    //printf("\nCAMINHO FEITO PELO LABIRINTO: \n");
+    //print_maze();
 
     if(resp)
         printf("Caminho encontrado! =)\n");
